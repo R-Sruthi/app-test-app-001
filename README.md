@@ -1,14 +1,14 @@
-# Generated Application
+# Generated Application (Round 2)
 
 ## Description
-Create a simple calculator web application with basic arithmetic operations.
+Add scientific calculator functions including square root, power, and percentage operations.
 
 ## Features
-- Add number buttons 0-9
-- Implement +, -, *, / operations
-- Display calculation results
-- Add clear button
-- Make it visually clean
+- Add square root function
+- Add power (x^y) function
+- Add percentage calculation
+- Add memory functions (M+, M-, MR, MC)
+- Maintain all existing basic operations
 
 ## Setup
 This application is automatically deployed to GitHub Pages and should be accessible immediately.
