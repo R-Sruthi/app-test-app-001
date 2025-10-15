@@ -17,7 +17,7 @@
         .calculator {
             border: 1px solid #ccc;
             border-radius: 5px;
-            width: 300px;
+            width: 350px; /* Increased width */
             background-color: #fff;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
@@ -34,7 +34,7 @@
 
         .buttons {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr); /* Modified grid columns */
         }
 
         button {
@@ -71,33 +71,48 @@
         .equal:hover {
             background-color: #388E3C;
         }
+
+        .scientific {
+            background-color: #e0e0e0;
+        }
+
+        .scientific:hover {
+            background-color: #d0d0d0;
+        }
     </style>
 </head>
 <body>
     <div class="calculator">
         <div class="display" id="display">0</div>
         <div class="buttons">
+            <button onclick="memoryAdd()" class="scientific">M+</button>
+            <button onclick="memorySubtract()" class="scientific">M-</button>
+            <button onclick="memoryRecall()" class="scientific">MR</button>
+            <button onclick="memoryClear()" class="scientific">MC</button>
+            <button onclick="clearDisplay()" class="clear">C</button>
+
             <button onclick="appendNumber('7')">7</button>
             <button onclick="appendNumber('8')">8</button>
             <button onclick="appendNumber('9')">9</button>
             <button onclick="operate('/')" class="operator">/</button>
+            <button onclick="calculateSquareRoot()" class="scientific">√</button>
 
             <button onclick="appendNumber('4')">4</button>
             <button onclick="appendNumber('5')">5</button>
             <button onclick="appendNumber('6')">6</button>
             <button onclick="operate('*')" class="operator">*</button>
+            <button onclick="calculatePower()" class="scientific">x^y</button>
 
             <button onclick="appendNumber('1')">1</button>
             <button onclick="appendNumber('2')">2</button>
             <button onclick="appendNumber('3')">3</button>
             <button onclick="operate('-')" class="operator">-</button>
+            <button onclick="calculatePercentage()" class="scientific">%</button>
 
             <button onclick="appendNumber('0')">0</button>
             <button onclick="appendNumber('.')">.</button>
             <button onclick="calculate()" class="equal">=</button>
             <button onclick="operate('+')" class="operator">+</button>
-
-            <button onclick="clearDisplay()" class="clear">C</button>
         </div>
     </div>
 
@@ -106,6 +121,7 @@
         let firstOperand = null;
         let operator = null;
         let waitingForSecondOperand = false;
+        let memoryValue = 0;
 
         function updateDisplay() {
             const display = document.getElementById('display');
@@ -125,18 +141,16 @@
         function operate(nextOperator) {
             const inputValue = parseFloat(displayValue);
 
-            if (firstOperand === null) {
+            if (operator && waitingForSecondOperand) {
+                operator = nextOperator;
+                return;
+            }
+
+            if (firstOperand === null && !isNaN(inputValue)) {
                 firstOperand = inputValue;
             } else if (operator) {
                 const result = calculateResult(firstOperand, inputValue, operator);
-                if (isNaN(result) || !isFinite(result)) {
-                    displayValue = 'Error';
-                    firstOperand = null;
-                    operator = null;
-                    waitingForSecondOperand = false;
-                    updateDisplay();
-                    return;
-                }
+
                 displayValue = String(result);
                 firstOperand = result;
             }
@@ -147,44 +161,36 @@
         }
 
         function calculateResult(firstOperand, secondOperand, operator) {
-            switch (operator) {
-                case '+':
-                    return firstOperand + secondOperand;
-                case '-':
-                    return firstOperand - secondOperand;
-                case '*':
-                    return firstOperand * secondOperand;
-                case '/':
-                    if (secondOperand === 0) {
-                        return NaN; // Handle division by zero
-                    }
-                    return firstOperand / secondOperand;
-                default:
-                    return secondOperand;
+            if (operator === '+') {
+                return firstOperand + secondOperand;
+            } else if (operator === '-') {
+                return firstOperand - secondOperand;
+            } else if (operator === '*') {
+                return firstOperand * secondOperand;
+            } else if (operator === '/') {
+                return firstOperand / secondOperand;
             }
+
+            return secondOperand;
         }
 
         function calculate() {
             const inputValue = parseFloat(displayValue);
 
-            if (operator) {
-                const result = calculateResult(firstOperand, inputValue, operator);
-                if (isNaN(result) || !isFinite(result)) {
-                    displayValue = 'Error';
-                    firstOperand = null;
-                    operator = null;
-                    waitingForSecondOperand = false;
-                    updateDisplay();
-                    return;
-                }
-                displayValue = String(result);
-                firstOperand = null;
-                operator = null;
+            if (operator === null) return;
+
+            if (waitingForSecondOperand) {
                 waitingForSecondOperand = false;
+                return;
             }
+
+            const result = calculateResult(firstOperand, inputValue, operator);
+
+            displayValue = String(result);
+            firstOperand = result;
+            operator = null;
             updateDisplay();
         }
-
 
         function clearDisplay() {
             displayValue = '0';
@@ -194,7 +200,53 @@
             updateDisplay();
         }
 
+        function calculateSquareRoot() {
+            displayValue = String(Math.sqrt(parseFloat(displayValue)));
+            updateDisplay();
+        }
+
+        function calculatePower() {
+            operate('^');
+        }
+
+        function calculatePercentage() {
+            displayValue = String(parseFloat(displayValue) / 100);
+            updateDisplay();
+        }
+
+        function memoryAdd() {
+            memoryValue += parseFloat(displayValue);
+        }
+
+        function memorySubtract() {
+            memoryValue -= parseFloat(displayValue);
+        }
+
+        function memoryRecall() {
+            displayValue = String(memoryValue);
+            updateDisplay();
+        }
+
+        function memoryClear() {
+            memoryValue = 0;
+        }
+
         updateDisplay();
+
+        document.addEventListener('keydown', function(event) {
+            const key = event.key;
+            if (/[0-9]/.test(key)) {
+                appendNumber(key);
+            } else if (['+', '-', '*', '/'].includes(key)) {
+                operate(key);
+            } else if (key === '.') {
+                appendNumber('.');
+            } else if (key === '=' || key === 'Enter') {
+                calculate();
+            } else if (key === 'c' || key === 'Escape') {
+                clearDisplay();
+            }
+        });
     </script>
 </body>
 </html>
