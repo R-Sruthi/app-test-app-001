@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        .calculator {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 300px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .display {
+            padding: 10px;
+            text-align: right;
+            border-bottom: 1px solid #ccc;
+            font-size: 24px;
+            word-wrap: break-word;
+            overflow: hidden;
+            min-height: 40px;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        button {
+            padding: 15px;
+            font-size: 18px;
+            border: none;
+            background-color: #eee;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #ddd;
+        }
+
+        .operator {
+            background-color: #f2f2f2;
+        }
+
+        .clear {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .clear:hover {
+            background-color: #d32f2f;
+        }
+
+        .equal {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .equal:hover {
+            background-color: #388E3C;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display" id="display">0</div>
+        <div class="buttons">
+            <button onclick="appendNumber('7')">7</button>
+            <button onclick="appendNumber('8')">8</button>
+            <button onclick="appendNumber('9')">9</button>
+            <button onclick="operate('/')" class="operator">/</button>
+
+            <button onclick="appendNumber('4')">4</button>
+            <button onclick="appendNumber('5')">5</button>
+            <button onclick="appendNumber('6')">6</button>
+            <button onclick="operate('*')" class="operator">*</button>
+
+            <button onclick="appendNumber('1')">1</button>
+            <button onclick="appendNumber('2')">2</button>
+            <button onclick="appendNumber('3')">3</button>
+            <button onclick="operate('-')" class="operator">-</button>
+
+            <button onclick="appendNumber('0')">0</button>
+            <button onclick="appendNumber('.')">.</button>
+            <button onclick="calculate()" class="equal">=</button>
+            <button onclick="operate('+')" class="operator">+</button>
+
+            <button onclick="clearDisplay()" class="clear">C</button>
+        </div>
+    </div>
+
+    <script>
+        let displayValue = '0';
+        let firstOperand = null;
+        let operator = null;
+        let waitingForSecondOperand = false;
+
+        function updateDisplay() {
+            const display = document.getElementById('display');
+            display.innerText = displayValue;
+        }
+
+        function appendNumber(number) {
+            if (waitingForSecondOperand === true) {
+                displayValue = number;
+                waitingForSecondOperand = false;
+            } else {
+                displayValue = displayValue === '0' ? number : displayValue + number;
+            }
+            updateDisplay();
+        }
+
+        function operate(nextOperator) {
+            const inputValue = parseFloat(displayValue);
+
+            if (firstOperand === null) {
+                firstOperand = inputValue;
+            } else if (operator) {
+                const result = calculateResult(firstOperand, inputValue, operator);
+                if (isNaN(result) || !isFinite(result)) {
+                    displayValue = 'Error';
+                    firstOperand = null;
+                    operator = null;
+                    waitingForSecondOperand = false;
+                    updateDisplay();
+                    return;
+                }
+                displayValue = String(result);
+                firstOperand = result;
+            }
+
+            waitingForSecondOperand = true;
+            operator = nextOperator;
+            updateDisplay();
+        }
+
+        function calculateResult(firstOperand, secondOperand, operator) {
+            switch (operator) {
+                case '+':
+                    return firstOperand + secondOperand;
+                case '-':
+                    return firstOperand - secondOperand;
+                case '*':
+                    return firstOperand * secondOperand;
+                case '/':
+                    if (secondOperand === 0) {
+                        return NaN; // Handle division by zero
+                    }
+                    return firstOperand / secondOperand;
+                default:
+                    return secondOperand;
+            }
+        }
+
+        function calculate() {
+            const inputValue = parseFloat(displayValue);
+
+            if (operator) {
+                const result = calculateResult(firstOperand, inputValue, operator);
+                if (isNaN(result) || !isFinite(result)) {
+                    displayValue = 'Error';
+                    firstOperand = null;
+                    operator = null;
+                    waitingForSecondOperand = false;
+                    updateDisplay();
+                    return;
+                }
+                displayValue = String(result);
+                firstOperand = null;
+                operator = null;
+                waitingForSecondOperand = false;
+            }
+            updateDisplay();
+        }
+
+
+        function clearDisplay() {
+            displayValue = '0';
+            firstOperand = null;
+            operator = null;
+            waitingForSecondOperand = false;
+            updateDisplay();
+        }
+
+        updateDisplay();
+    </script>
+</body>
+</html>
